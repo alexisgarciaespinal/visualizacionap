@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block title %}Inicio{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="text-center">
+        <h1 class="display-4">Panel de Control Apacilagua</h1>
+        <p class="lead">Seleccione una opción para Visualizar.</p>
+    </div>
+
+    <div class="row justify-content-center mt-4">
+        <!-- Ficha Técnica -->
+        <div class="col-md-3 mb-3">
+            <a href="{{ url_for('ficha') }}" class="btn btn-primary btn-block py-3">
+                <i class="fas fa-file-alt"></i> Ficha Técnica
+            </a>
+        </div>
+        <!-- Estimaciones -->
+        <div class="col-md-3 mb-3">
+            <a href="{{ url_for('estimaciones') }}" class="btn btn-success btn-block py-3">
+                <i class="fas fa-chart-line"></i> Estimaciones
+            </a>
+        </div>
+        <!-- Pulverizaciones -->
+        <div class="col-md-3 mb-3">
+            <a href="{{ url_for('pulverizacion') }}" class="btn btn-warning btn-block py-3">
+                <i class="fas fa-spray-can"></i> Pulverizaciones
+            </a>
+        </div>
+        <!-- Ingreso Personal -->
+        <div class="col-md-3 mb-3">
+            <a href="{{ url_for('ingreso') }}" class="btn btn-info btn-block py-3">
+                <i class="fas fa-user"></i> Ingreso Personal
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
