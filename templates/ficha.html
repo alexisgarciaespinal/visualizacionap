@@ -154,8 +154,8 @@
     <div class="graph-container">
         <form method="GET" action="/ficha">
             <div class="form-group">
-                <label for="lote">Seleccione un Lote:</label>
-                <select name="lote" id="lote" class="form-control" onchange="this.form.submit()">
+                <label for="lote_lineas">Seleccione un Lote:</label>
+                <select name="lote_lineas" id="lote_lineas" class="form-control" onchange="this.form.submit()">
                     {% for lote in lotes %}
                     <option value="{{ lote }}" {% if lote == selected_lote %}selected{% endif %}>{{ lote }}</option>
                     {% endfor %}
@@ -164,13 +164,67 @@
         </form>
         {{ graph_html_lineas | safe }}
     </div>
+    
+    <div class="container mt-5">
+        <h2>Conductividad Electrica y PH del Suelo</h2>
+        
+        {% if message %}
+            <div class="alert alert-warning">{{ message }}</div>
+        {% endif %}
+        
+        <form method="GET" action="/ficha" class="mb-4">
+            <div class="form-row">
+                <div class="form-group col-md-3">
+                    <label for="fecha">Seleccionar Fecha:</label>
+                    <select id="fecha" name="fecha" class="form-control" onchange="actualizarFiltros()">
+                        <option value="">-- Seleccionar Fecha --</option>
+                        {% for fecha in fechas_unicas %}
+                            <option value="{{ fecha }}" {% if fecha == fecha_seleccionada %}selected{% endif %}>{{ fecha }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group col-md-3">
+                    <label for="lote">Seleccionar Lote:</label>
+                    <select id="lote" name="lote" class="form-control" onchange="actualizarFiltros()">
+                        <option value="">-- Seleccionar Lote --</option>
+                        {% for lote in lotes_unicos %}
+                            <option value="{{ lote }}" {% if lote == lote_seleccionado %}selected{% endif %}>{{ lote }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group col-md-3">
+                    <label for="turno">Seleccionar Turno:</label>
+                    <select id="turno" name="turno" class="form-control" onchange="actualizarFiltros()">
+                        <option value="">-- Seleccionar Turno --</option>
+                        {% for turno in turnos_unicos %}
+                            <option value="{{ turno }}" {% if turno == turno_seleccionado %}selected{% endif %}>{{ turno }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group col-md-3">
+                    <label for="valvula">Seleccionar Válvula:</label>
+                    <select id="valvula" name="valvula" class="form-control" onchange="actualizarFiltros()">
+                        <option value="">-- Seleccionar Válvula --</option>
+                        {% for valvula in valvulas_unicas %}
+                            <option value="{{ valvula }}" {% if valvula == valvula_seleccionada %}selected{% endif %}>{{ valvula }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary">Filtrar</button>
+            <a href="/reset" class="btn btn-secondary">Reiniciar Filtros</a>
+        </form>
 
+        <div id="graph-container">
+            {{ graph_html_puntos|safe }}
+        </div>
+    </div>
 
     <h2>Mapa Humedad del Suelo</h2>
     <div class="graph-container">
         <form method="GET" action="/ficha" id="filterForm">
-            <label for="fecha">Seleccione una Fecha:</label>
-            <select id="fecha" name="date" onchange="this.form.submit()">
+            <label for="date">Seleccione una Fecha:</label>
+            <select id="date" name="date" onchange="this.form.submit()">
                 <option value="">Todas las Fechas</option>
                 {% for fecha in fechas_disponibles %}
                     <option value="{{ fecha }}" 
@@ -180,7 +234,7 @@
                 {% endfor %}
             </select>
         </form>
-    
+        
         <div class="folium-map">
             {{ folium_map_html | safe }}
         </div>
@@ -189,6 +243,7 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.3.5/css/buttons.dataTables.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/colvis/1.2.0/css/buttons.colVis.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
@@ -198,6 +253,9 @@
     <script src="https://cdn.datatables.net/buttons/2.3.5/js/buttons.colVis.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.13/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
 
     <script>
         $(document).ready(function() {
@@ -251,6 +309,40 @@
             });
         });
     </script>
+
+<script>
+    function actualizarFiltros() {
+        var fecha = $('#fecha').val();
+        var lote = $('#lote').val();
+        var turno = $('#turno').val();
+
+        $.get('/filtros', { fecha: fecha, lote: lote, turno: turno }, function(data) {
+            // Actualizar Lotes
+            var loteSelect = $('#lote');
+            loteSelect.empty();
+            loteSelect.append('<option value="">-- Seleccionar Lote --</option>');
+            data.lotes.forEach(function(lote) {
+                loteSelect.append('<option value="' + lote + '">' + lote + '</option>');
+            });
+
+            // Actualizar Turnos
+            var turnoSelect = $('#turno');
+            turnoSelect.empty();
+            turnoSelect.append('<option value="">-- Seleccionar Turno --</option>');
+            data.turnos.forEach(function(turno) {
+                turnoSelect.append('<option value="' + turno + '">' + turno + '</option>');
+            });
+
+            // hasta aqui bueno
+            var valvulaSelect = $('#valvula');
+            valvulaSelect.empty();
+            valvulaSelect.append('<option value="">-- Seleccionar Válvula --</option>');
+            data.valvulas.forEach(function(valvula) {
+                valvulaSelect.append('<option value="' + valvula + '">' + valvula + '</option>');
+            });
+        });
+    }
+</script>
 </div>
 
 {% endblock %}
