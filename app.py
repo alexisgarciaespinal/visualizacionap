@@ -9,9 +9,18 @@ from folium.plugins import MarkerCluster
 
 app = Flask(__name__)
 
+# Obtener la clave secreta desde las variables de entorno
+app.secret_key = os.getenv('SECRET_KEY')
+
+# Configurar conexión a MongoDB usando variable de entorno
+mongo_uri = os.getenv('MONGO_URI')
+client = MongoClient(mongo_uri)
+
+
 # Configurar conexión a MongoDB
-app.secret_key = '0e01e4bcf2960bdb6aafeac4cded07b5f0bb809d8e1ff7e9'
-client = MongoClient('mongodb+srv://alexisgarcia:Percha84@temporada2324.lug6z.mongodb.net/?retryWrites=true&w=majority&appName=temporada2324')
+#app.secret_key = '0e01e4bcf2960bdb6aafeac4cded07b5f0bb809d8e1ff7e9'
+#client = MongoClient('mongodb+srv://alexisgarcia:Percha84@temporada2324.lug6z.mongodb.net/?retryWrites=true&w=majority&appName=temporada2324')
+
 db = client['apacilagua']
 
 collection = db['form_data']
