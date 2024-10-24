@@ -12,6 +12,7 @@ app = Flask(__name__)
 # Obtener la clave secreta desde las variables de entorno
 app.secret_key = os.getenv('SECRET_KEY')
 
+
 # Configurar conexión a MongoDB usando variable de entorno
 mongo_uri = os.getenv('MONGO_URI')
 client = MongoClient(mongo_uri)
@@ -44,7 +45,7 @@ def ficha():
     ####################################
     # Gráfico de Líneas (Tensiometros)
     df_alex = df[['Fecha/Hora', 'Edad_cultivo', 'Lote', 'Tensiometro_12', 'Tensiometro_24']].dropna()
-
+    print(df_alex)
     lotes = df_alex['Lote'].unique()
     selected_lote = request.args.get('lote_lineas', default=lotes[0])  
     df_lote = df_alex[df_alex['Lote'] == selected_lote]
@@ -83,8 +84,9 @@ def ficha():
         # Crear DataFrame con las columnas necesarias
         dfa = pd.DataFrame(datalu)[['Fecha/Hora', 'Turno', 'Valvula', 'Lote', 'CE_suelo', 'PH_suelo']]
         dfa['Fecha/Hora'] = pd.to_datetime(dfa['Fecha/Hora'], errors='coerce')
-        dfa = dfa.dropna(subset=['CE_suelo', 'PH_suelo'])
-
+        dfa['PH_suelo'].fillna(0, inplace=True)
+        dfa = dfa.dropna(subset=['CE_suelo'])
+      
         # Obtener los parámetros del request (selección del usuario)
         fecha_seleccionada = request.args.get('fecha')
         lote_seleccionado = request.args.get('lote')
@@ -165,7 +167,7 @@ def ficha():
     ###########################
     # Mapa con Folium
     df_filtered = df[['Fecha/Hora', 'Latitud', 'Longitud', 'Lote', 'CE_suelo', 'PH_suelo', 'Valvula']].dropna()
-
+    print(df_filtered)
     # Obtener fecha seleccionada para el mapa
     selected_date = request.args.get('date')
     fechas_disponibles = df_filtered['Fecha/Hora'].dt.date.unique().tolist()
